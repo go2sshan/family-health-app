@@ -2,3 +2,10 @@ project_id = "family-health-app"
 
 [functions.scan-document]
 verify_jwt = true
+
+[functions.call-token]
+verify_jwt = true
+
+[functions.notify-message]
+# called by the database with a shared secret, not a user login
+verify_jwt = false

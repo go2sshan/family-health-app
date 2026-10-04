@@ -12,7 +12,12 @@
       "bundleIdentifier": "com.go2sshan.familyhealth",
       "supportsTablet": false,
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSMicrophoneUsageDescription": "Family Health uses the microphone for voice and video calls with your family.",
+        "UIBackgroundModes": [
+          "audio",
+          "remote-notification"
+        ]
       }
     },
     "android": {
@@ -49,9 +54,9 @@
       [
         "expo-image-picker",
         {
-          "cameraPermission": "Family Health uses the camera to photograph prescriptions, bills, reports and profile photos.",
+          "cameraPermission": "Family Health uses the camera for video calls and to photograph prescriptions, bills, reports and profile photos.",
           "photosPermission": "Family Health lets you add photos of prescriptions, bills and reports from your library.",
-          "microphonePermission": false
+          "microphonePermission": "Family Health uses the microphone for voice and video calls with your family."
         }
       ],
       [
@@ -60,6 +65,20 @@
           "NSHealthShareUsageDescription": "Family Health reads steps, heart rate, sleep, blood oxygen, weight, blood pressure and workouts from Apple Health so they appear in your family health record.",
           "NSHealthUpdateUsageDescription": false,
           "background": false
+        }
+      ],
+      "@livekit/react-native-expo-plugin",
+      [
+        "@config-plugins/react-native-webrtc",
+        {
+          "cameraPermission": "Family Health uses the camera for video calls and to photograph prescriptions, bills and reports.",
+          "microphonePermission": "Family Health uses the microphone for voice and video calls with your family."
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "color": "#0f6e7a"
         }
       ]
     ],

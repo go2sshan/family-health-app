@@ -61,6 +61,24 @@ export function AboutTab({ d, reload }: { d: MemberDetail; reload: () => void })
   const bmiByRow: Record<string, string> = {};
   for (const x of asc) { if (x.height_cm) lastCm = x.height_cm; bmiByRow[x.id] = x.weight_kg && lastCm ? bmi(x.weight_kg, lastCm).toFixed(1) : '—'; }
 
+  if (d.role === 'view') {
+    return (
+      <View style={{ gap: Space.md }}>
+        <EmergencyCard d={d} />
+        <Button kind="primary" title="Show to doctor (large print)" onPress={() => router.push({ pathname: '/member/[id]/emergency', params: { id: m.id } })} />
+        {d.measurements.length ? (
+          <Card>
+            <H>Height and weight, year by year</H>
+            {d.measurements.map((x) => (
+              <T key={x.id}>{fmtDate(x.measured_on)} · {x.height_cm ? cmToFtIn(x.height_cm) : '—'} · {x.weight_kg ? `${kgToLb(x.weight_kg)} lb` : '—'} · BMI {bmiByRow[x.id]}</T>
+            ))}
+          </Card>
+        ) : null}
+        <Muted>{m.first_name} shared these records with you to view. Only people with edit access can change them.</Muted>
+      </View>
+    );
+  }
+
   return (
     <View style={{ gap: Space.md }}>
       <EmergencyCard d={d} />
@@ -196,11 +214,11 @@ export function AboutTab({ d, reload }: { d: MemberDetail; reload: () => void })
         }} />
       </Card>
 
-      <Button kind="danger" title={`Remove ${m.first_name} and all their records`} onPress={() =>
+      {d.role === 'manage' ? <Button kind="danger" title={`Remove ${m.first_name} and all their records`} onPress={() =>
         Alert.alert(`Remove ${m.first_name}?`, 'All of their records, scans and payments will be permanently deleted.', [
           { text: 'Cancel', style: 'cancel' },
           { text: 'Delete everything', style: 'destructive', onPress: async () => { await deleteMember(m.id); router.back(); } },
-        ])} />
+        ])} /> : null}
     </View>
   );
 }

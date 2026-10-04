@@ -7,10 +7,16 @@ emergency card for when someone can't explain for themselves.
 Built with Expo (React Native) and Supabase. Scans are read by Claude through a Supabase Edge
 Function, so the AI key never ships inside the app.
 
-## What's in this first version
+## What's in it
 
 - Sign in with email and password; Face ID locks the app on launch and after 1 minute in the background
-- Family home with a card per person (photo, age, blood group, allergies, conditions, medicines, last visit)
+- **Families like WhatsApp groups**: start a family, invite people with a one-time code, remove them, make admins
+- **Each person controls their own records**: private until they share them, per person, as "can view" or "can edit".
+  Profiles for children or elders without a phone are managed by whoever created them and the family admins;
+  invite that person later and the profile (with its history) becomes theirs
+- **Chat**: a family group chat plus one-to-one chats, photos, sharing a health record into a chat, read receipts, unread badges
+- **Voice and video calls** (LiveKit), one-to-one or the whole family, with incoming call screen and push notifications
+- Family home with a card per profile you can see (photo, age, blood group, allergies, conditions, medicines, last visit)
 - Each person's page
   - **Records**: timeline by year; scan a prescription, bill or report with the camera; add records by hand; allergy warnings against current medicines
   - **About me**: emergency card, profile photo, personal details, allergies, height and weight by year (US or metric, with BMI), eye prescription by year, emergency contacts
@@ -26,7 +32,8 @@ Coming next: lab trend charts, Apple Health clinical records, doctor finder and 
 
 1. Create a project at [supabase.com](https://supabase.com).
 2. Open **SQL Editor** and run each file in `supabase/migrations/`, oldest first:
-   `20261004000000_init.sql`, then `20261004010000_apple_health.sql`.
+   `20261004000000_init.sql`, `20261004010000_apple_health.sql`, then `20261004020000_family_chat_calls.sql`.
+3. Optional check: `supabase/tests/privacy_test.sql` runs 31 privacy checks (who can see what) against a test database.
    (Or with the Supabase CLI: `npx supabase link --project-ref <ref>` then `npx supabase db push`.)
 3. Under **Authentication > Providers**, keep **Email** on. For family-only use you can turn off
    "Allow new users to sign up" after everyone has an account.
@@ -40,6 +47,26 @@ Coming next: lab trend charts, Apple Health clinical records, doctor finder and 
    npx supabase functions deploy scan-document
    npx supabase secrets set ANTHROPIC_API_KEY=sk-ant-...
    ```
+
+### 2b. Calls (LiveKit) and notifications
+
+1. Create a free project at [livekit.io](https://cloud.livekit.io) and copy its URL, API key and API secret.
+2. Deploy the two functions and store the secrets:
+
+   ```sh
+   npx supabase functions deploy call-token
+   npx supabase functions deploy notify-message --no-verify-jwt
+   npx supabase secrets set LIVEKIT_URL=wss://YOUR.livekit.cloud LIVEKIT_API_KEY=... LIVEKIT_API_SECRET=...
+   npx supabase secrets set NOTIFY_SECRET=<any long random text>
+   ```
+3. Tell the database where to send notifications (SQL Editor):
+
+   ```sql
+   insert into public.app_config (key, value) values
+     ('notify_url', 'https://YOUR-PROJECT.supabase.co/functions/v1/notify-message'),
+     ('notify_secret', '<the same long random text>');
+   ```
+4. Notifications need the EAS project id in `app.json` (`npx eas-cli@latest init` adds it).
 
 ### 3. The app
 
@@ -86,9 +113,13 @@ src/app/                  screens (Expo Router)
   add-member.tsx
   member/[id]/            a person's page, scan, add record, add payment, edit, emergency card
 src/components/           UI pieces, emergency card, member tabs
-src/lib/                  Supabase client, data API, scanning, formatting
+src/app/(tabs)/           Family and Chats tabs
+src/app/chat/, call/      conversation, share a record, call screen
+src/app/family.tsx        invite, remove, admins
+src/lib/                  Supabase client, data API, family, chat, calls, notifications, scanning
 supabase/migrations/      database schema and security rules
-supabase/functions/       scan-document (Claude)
+supabase/functions/       scan-document (Claude), call-token (LiveKit), notify-message (push)
+supabase/tests/           privacy tests for the sharing rules
 ```
 
 ## Checks

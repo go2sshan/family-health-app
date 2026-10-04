@@ -15,7 +15,13 @@ export type Member = {
   care_needs: string | null;
   photo_path: string | null;
   sort_order: number;
+  family_id: string | null;
+  /** The login of the person this profile describes, if they have one. */
+  user_id: string | null;
 };
+
+/** What the signed-in person may do with a profile. */
+export type MemberRole = 'manage' | 'edit' | 'view';
 
 export type Allergy = {
   id: string;
@@ -80,6 +86,7 @@ export type Payment = {
 
 export type MemberDetail = {
   member: Member;
+  role: MemberRole;
   allergies: Allergy[];
   measurements: Measurement[];
   eyes: EyeRx[];

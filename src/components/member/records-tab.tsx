@@ -50,12 +50,12 @@ export function RecordsTab({ d, reload }: { d: MemberDetail; reload: () => void 
 
   return (
     <View style={{ gap: Space.md }}>
-      <Row>
+      {d.role !== 'view' ? <Row>
         <Button kind="primary" title="Photo of prescription" onPress={() => router.push({ pathname: '/member/[id]/scan', params: { id, hint: 'prescription', camera: '1' } })} />
         <Button kind="primary" title="Photo of bill" onPress={() => router.push({ pathname: '/member/[id]/scan', params: { id, hint: 'bill', camera: '1' } })} />
         <Button title="Scan other document" onPress={() => router.push({ pathname: '/member/[id]/scan', params: { id } })} />
         <Button title="Add a record" onPress={() => router.push({ pathname: '/member/[id]/add-record', params: { id } })} />
-      </Row>
+      </Row> : null}
 
       {allergyWarnings.map((w) => (
         <Card key={w.med + w.allergy} tone="bad">
@@ -97,12 +97,12 @@ export function RecordsTab({ d, reload }: { d: MemberDetail; reload: () => void 
                   Paid {money(p.amount_paid, p.currency)}{p.insurance_paid ? ` · insurance ${money(p.insurance_paid, p.currency)}` : ''}
                 </T>
               ))}
-              <Row>
+              {d.role !== 'view' ? <Row>
                 {PAYABLE.includes(r.kind) ? (
                   <Button small title="Add payment" onPress={() => router.push({ pathname: '/member/[id]/add-payment', params: { id, recordId: r.id } })} />
                 ) : null}
                 <Button small kind="danger" title="Delete" onPress={() => confirmDelete(r.id, r.title)} />
-              </Row>
+              </Row> : null}
             </Card>
           </View>
         );

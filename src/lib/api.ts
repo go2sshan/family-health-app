@@ -9,11 +9,6 @@ function check<T>(res: { data: T; error: { message: string } | null }): T {
   return res.data;
 }
 
-async function uid(): Promise<string> {
-  const { data } = await supabase.auth.getUser();
-  if (!data.user) throw new Error('You are signed out. Sign in again.');
-  return data.user.id;
-}
 
 // ---------- family ----------
 export type MemberSummary = Member & {
@@ -40,8 +35,7 @@ export async function updateMember(id: string, patch: Partial<Member>): Promise<
 }
 
 export async function deleteMember(id: string): Promise<void> {
-  const owner = await uid();
-  const folder = `${owner}/${id}`;
+  const folder = id;
   const listed = await supabase.storage.from(FILES_BUCKET).list(folder, { limit: 1000 });
   if (listed.data?.length) {
     await supabase.storage.from(FILES_BUCKET).remove(listed.data.map((f) => `${folder}/${f.name}`));
@@ -50,7 +44,8 @@ export async function deleteMember(id: string): Promise<void> {
 }
 
 export async function getMemberDetail(id: string): Promise<MemberDetail> {
-  const [member, allergies, measurements, eyes, contacts, records, payments] = await Promise.all([
+  const [role, member, allergies, measurements, eyes, contacts, records, payments] = await Promise.all([
+    supabase.rpc('member_role', { mid: id }),
     supabase.from('members').select('*').eq('id', id).single(),
     supabase.from('allergies').select('*').eq('member_id', id).order('created_at'),
     supabase.from('measurements').select('*').eq('member_id', id).order('measured_on', { ascending: false }),
@@ -60,7 +55,10 @@ export async function getMemberDetail(id: string): Promise<MemberDetail> {
       .order('occurred_on', { ascending: false, nullsFirst: false }),
     supabase.from('payments').select('*').eq('member_id', id).order('paid_on', { ascending: false }),
   ]);
+  const r = check(role) as string | null;
+  if (!r) throw new Error('This person hasn\'t shared their records with you.');
   return {
+    role: r as MemberDetail['role'],
     member: check(member) as Member,
     allergies: check(allergies) as Allergy[],
     measurements: check(measurements) as Measurement[],
@@ -106,10 +104,16 @@ function base64ToBytes(b64: string): Uint8Array {
   return out;
 }
 
-/** Upload a JPEG (base64) to <user>/<member>/<random>.jpg and return its storage path. */
+/** Upload a JPEG (base64) to <member>/<random>.jpg and return its storage path. */
 export async function uploadJpeg(memberId: string, base64: string): Promise<string> {
-  const owner = await uid();
-  const path = `${owner}/${memberId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.jpg`;
+  const path = `${memberId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.jpg`;
+  check(await supabase.storage.from(FILES_BUCKET).upload(path, base64ToBytes(base64), { contentType: 'image/jpeg' }));
+  return path;
+}
+
+/** Upload a photo sent in a chat to chat/<conversation>/<random>.jpg. */
+export async function uploadChatJpeg(conversationId: string, base64: string): Promise<string> {
+  const path = `chat/${conversationId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.jpg`;
   check(await supabase.storage.from(FILES_BUCKET).upload(path, base64ToBytes(base64), { contentType: 'image/jpeg' }));
   return path;
 }

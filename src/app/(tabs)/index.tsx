@@ -1,4 +1,4 @@
-import { router, Stack, useFocusEffect } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { Pressable, RefreshControl, ScrollView, View } from 'react-native';
 
@@ -7,13 +7,14 @@ import { Space } from '@/constants/theme';
 import { usePalette } from '@/hooks/use-palette';
 import { listMembers, type MemberSummary } from '@/lib/api';
 import { ageOf, fmtDate, fullName, initials } from '@/lib/format';
-import { supabase } from '@/lib/supabase';
+import { useFamily } from '@/lib/family';
 
 export default function Family() {
   const c = usePalette();
   const [members, setMembers] = useState<MemberSummary[] | null>(null);
   const [err, setErr] = useState('');
   const [refreshing, setRefreshing] = useState(false);
+  const { family, people, me } = useFamily();
 
   const load = useCallback(async () => {
     try { setMembers(await listMembers()); setErr(''); }
@@ -23,17 +24,17 @@ export default function Family() {
 
   return (
     <>
-      <Stack.Screen options={{ headerRight: () => <Button small title="Sign out" onPress={() => supabase.auth.signOut()} /> }} />
       <ScrollView
         style={{ backgroundColor: c.bg }}
         contentInsetAdjustmentBehavior="automatic"
         contentContainerStyle={{ padding: Space.lg, gap: Space.md, paddingBottom: 48 }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={async () => { setRefreshing(true); await load(); setRefreshing(false); }} />}>
         <ErrorText>{err}</ErrorText>
-        {members && members.length === 0 ? (
-          <View style={{ gap: Space.sm, paddingVertical: Space.lg }}>
-            <H>Start with yourself</H>
-            <Muted>Add each family member, then scan their prescriptions, bills and reports. Everything stays private to your account.</Muted>
+        <Muted>{family?.name} · {people.length} {people.length === 1 ? 'person' : 'people'} using the app</Muted>
+        {members && members.length <= 1 ? (
+          <View style={{ gap: Space.sm, paddingVertical: Space.sm }}>
+            <H>Add your family</H>
+            <Muted>Invite your spouse or parents with &quot;Family and sharing&quot;. Add profiles for children or elders who don&apos;t have a phone with the button below. Each person&apos;s records stay private until they share them.</Muted>
           </View>
         ) : null}
         {members?.map((m) => {
@@ -52,7 +53,7 @@ export default function Family() {
                 <Avatar path={m.photo_path} initials={initials(m)} />
                 <View style={{ flex: 1 }}>
                   <T style={{ fontSize: 18, fontWeight: '700' }}>{fullName(m)}</T>
-                  <Muted>{[m.relationship || 'Family member', age != null ? `age ${age}` : null].filter(Boolean).join(' · ')}</Muted>
+                  <Muted>{[m.user_id === me?.id ? 'You' : m.relationship || 'Family member', age != null ? `age ${age}` : null].filter(Boolean).join(' · ')}</Muted>
                 </View>
               </View>
               <Row>
@@ -65,7 +66,7 @@ export default function Family() {
             </Pressable>
           );
         })}
-        <Button kind="primary" title="Add family member" onPress={() => router.push('/add-member')} />
+        <Button kind="primary" title="Add a profile (child or elder without a phone)" onPress={() => router.push('/add-member')} />
       </ScrollView>
     </>
   );

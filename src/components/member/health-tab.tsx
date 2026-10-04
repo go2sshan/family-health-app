@@ -96,7 +96,9 @@ export function HealthTab({ d, reload }: { d: MemberDetail; reload: () => void }
     <View style={{ gap: Space.md }}>
       <Card>
         <H>Apple Health and Apple Watch</H>
-        {!available ? (
+        {d.role !== 'manage' ? (
+          <Muted>Only {m.first_name} can connect Apple Health, from their own iPhone. You see what they&apos;ve shared.</Muted>
+        ) : !available ? (
           <Muted>Apple Health connects in the installed iPhone app (TestFlight). It isn&apos;t available in Expo Go or on Android.</Muted>
         ) : isLinkedHere ? (
           <>

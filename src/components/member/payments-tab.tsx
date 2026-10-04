@@ -51,7 +51,7 @@ export function PaymentsTab({ d, reload }: { d: MemberDetail; reload: () => void
         <Card style={{ flexGrow: 1, flexBasis: 150 }}><Muted>Insurance paid</Muted><T style={{ fontSize: 20, fontWeight: '700' }}>{totals(pays, 'insurance_paid') || '$0'}</T></Card>
       </Row>
       <Choice label="Group by" options={[{ value: 'illness', label: 'Illness' }, { value: 'doctor', label: 'Doctor' }, { value: 'kind', label: 'Type' }, { value: 'year', label: 'Year' }] as { value: Group; label: string }[]} value={group} onChange={setGroup} />
-      <Button title="Add other payment" onPress={() => router.push({ pathname: '/member/[id]/add-payment', params: { id: d.member.id } })} />
+      {d.role !== 'view' ? <Button title="Add other payment" onPress={() => router.push({ pathname: '/member/[id]/add-payment', params: { id: d.member.id } })} /> : null}
       {pays.length === 0 ? <Muted>No payments yet. Add one from any visit or medicine in Records, or scan a bill.</Muted> : null}
       {rows.map(([name, list]) => {
         const isOpen = open === name;
@@ -71,7 +71,7 @@ export function PaymentsTab({ d, reload }: { d: MemberDetail; reload: () => void
                   <T style={{ fontWeight: '600' }}>{money(p.amount_paid, p.currency)}</T>
                 </Row>
                 <Muted>{[fmtDate(p.paid_on), group === 'doctor' ? p.illness : p.doctor, p.note, p.estimated ? 'estimate' : null].filter(Boolean).join(' · ')}</Muted>
-                <Button small kind="danger" title="Delete" onPress={() => confirmDelete(p)} style={{ alignSelf: 'flex-start' }} />
+                {d.role !== 'view' ? <Button small kind="danger" title="Delete" onPress={() => confirmDelete(p)} style={{ alignSelf: 'flex-start' }} /> : null}
               </View>
             )) : null}
           </Card>

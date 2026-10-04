@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase';
 
 export function SignIn() {
   const [mode, setMode] = useState<'in' | 'up'>('in');
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
@@ -15,10 +16,11 @@ export function SignIn() {
   async function go() {
     setErr(''); setNote('');
     if (!email.includes('@') || password.length < 8) { setErr('Enter your email and a password of at least 8 characters.'); return; }
+    if (mode === 'up' && !name.trim()) { setErr('Add your name so your family knows who you are.'); return; }
     setBusy(true);
     const res = mode === 'in'
       ? await supabase.auth.signInWithPassword({ email: email.trim(), password })
-      : await supabase.auth.signUp({ email: email.trim(), password });
+      : await supabase.auth.signUp({ email: email.trim(), password, options: { data: { display_name: name.trim() } } });
     setBusy(false);
     if (res.error) { setErr(res.error.message); return; }
     if (mode === 'up' && !res.data.session) setNote('Check your email and tap the confirmation link, then sign in here.');
@@ -32,6 +34,7 @@ export function SignIn() {
         <Muted>One private place for your family&apos;s records, scans, payments and emergency cards.</Muted>
         <Card>
           <H>{mode === 'in' ? 'Sign in' : 'Create your account'}</H>
+          {mode === 'up' ? <Field label="Your name (shown to your family)" value={name} onChangeText={setName} textContentType="name" autoComplete="name" /> : null}
           <Field label="Email" value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" autoComplete="email" textContentType="emailAddress" />
           <Field label="Password" value={password} onChangeText={setPassword} secureTextEntry autoComplete={mode === 'in' ? 'current-password' : 'new-password'} textContentType={mode === 'in' ? 'password' : 'newPassword'} />
           <ErrorText>{err}</ErrorText>
