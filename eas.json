@@ -1,9 +1,31 @@
 {
-  "cli": { "version": ">= 16.0.0", "appVersionSource": "remote" },
-  "build": {
-    "development": { "developmentClient": true, "distribution": "internal" },
-    "preview": { "distribution": "internal" },
-    "production": { "autoIncrement": true }
+  "cli": {
+    "version": ">= 16.0.0",
+    "appVersionSource": "remote",
+    "promptToConfigurePushNotifications": false
   },
-  "submit": { "production": {} }
+  "build": {
+    "base": {
+      "env": {
+        "EXPO_PUBLIC_SUPABASE_URL": "https://acpdbtzkndvyfnmczind.supabase.co",
+        "EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY": "sb_publishable_dW2zbOns9i5xoqscOyUc7w_4aTOCvqB"
+      }
+    },
+    "development": {
+      "extends": "base",
+      "developmentClient": true,
+      "distribution": "internal"
+    },
+    "preview": {
+      "extends": "base",
+      "distribution": "internal"
+    },
+    "production": {
+      "extends": "base",
+      "autoIncrement": true
+    }
+  },
+  "submit": {
+    "production": {}
+  }
 }

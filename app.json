@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Family Health",
-    "slug": "family-health",
+    "slug": "my-medical",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -48,7 +48,7 @@
       [
         "expo-local-authentication",
         {
-          "faceIDPermission": "Family Health uses Face ID to keep your family\u2019s medical records private."
+          "faceIDPermission": "Family Health uses Face ID to keep your family’s medical records private."
         }
       ],
       [
@@ -85,6 +85,12 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "owner": "haven-technologies-inc",
+    "extra": {
+      "eas": {
+        "projectId": "35eae8d8-4b5b-41bc-baf9-5f91a582cec2"
+      }
     }
   }
 }
