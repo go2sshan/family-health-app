@@ -16,6 +16,8 @@ export type Member = {
   photo_path: string | null;
   sort_order: number;
   family_id: string | null;
+  /** Panel color for this person's medicine reminders. */
+  color: string;
   /** The login of the person this profile describes, if they have one. */
   user_id: string | null;
 };

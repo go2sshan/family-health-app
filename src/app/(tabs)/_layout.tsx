@@ -37,6 +37,14 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
+        name="meds"
+        options={{
+          title: 'Medicines',
+          headerRight: () => <Button small title="Add" onPress={() => router.push('/meds/edit')} style={{ marginRight: 12 }} />,
+          tabBarIcon: ({ color, size }) => <SymbolView name="pills.fill" tintColor={color} size={size} />,
+        }}
+      />
+      <Tabs.Screen
         name="chats"
         listeners={{ focus: refresh }}
         options={{

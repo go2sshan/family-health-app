@@ -4,6 +4,7 @@ import * as Notifications from 'expo-notifications';
 import { router } from 'expo-router';
 import { Platform } from 'react-native';
 
+import { handleMedResponse } from './med-reminders';
 import { supabase } from './supabase';
 
 Notifications.setNotificationHandler({
@@ -39,9 +40,17 @@ export function openFromNotification(data: unknown) {
   else if (d.conversationId) router.push({ pathname: '/chat/[id]', params: { id: d.conversationId } });
 }
 
+async function onResponse(r: Notifications.NotificationResponse) {
+  if (await handleMedResponse(r)) {
+    if (r.actionIdentifier === Notifications.DEFAULT_ACTION_IDENTIFIER) router.push('/meds');
+    return;
+  }
+  openFromNotification(r.notification.request.content.data);
+}
+
 export function listenForTaps(): () => void {
   const last = Notifications.getLastNotificationResponse();
-  if (last) openFromNotification(last.notification.request.content.data);
-  const sub = Notifications.addNotificationResponseReceivedListener((r) => openFromNotification(r.notification.request.content.data));
+  if (last) onResponse(last);
+  const sub = Notifications.addNotificationResponseReceivedListener((r) => { onResponse(r); });
   return () => sub.remove();
 }

@@ -40,6 +40,8 @@ function Signed() {
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="family" options={{ title: 'Family and sharing' }} />
         <Stack.Screen name="add-member" options={{ title: 'Add a profile', presentation: 'modal' }} />
+        <Stack.Screen name="meds/edit" options={{ title: 'Medicine', presentation: 'modal' }} />
+        <Stack.Screen name="meds/manage" options={{ title: 'All medicines' }} />
         <Stack.Screen name="new-chat" options={{ title: 'New chat', presentation: 'modal' }} />
         <Stack.Screen name="chat/[id]/index" options={{ title: '' }} />
         <Stack.Screen name="chat/[id]/share-record" options={{ title: 'Share a record', presentation: 'modal' }} />

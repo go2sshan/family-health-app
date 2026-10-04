@@ -140,4 +140,40 @@ select pg_temp.check((select count(*) from public.my_conversations()) = 2, 'Alic
 select pg_temp.check((select unread from public.my_conversations() where kind='direct') = 2, 'unread count shows Bob''s 2 new messages');
 select pg_temp.as_user('cccccccc-0000-0000-0000-000000000003');
 select pg_temp.check((select count(*) from public.my_conversations()) = 0, 'outsider''s chat list is empty');
+
+
+-- ---------- medicine reminders ----------
+-- (state here: Alice's profile not shared with Bob any more; Dan manages his own profile, Alice can edit it)
+select pg_temp.as_user('aaaaaaaa-0000-0000-0000-000000000001');
+insert into medication_schedules (member_id, name, strength, dose_qty, dose_unit, pill_color, times)
+  select v::uuid, 'Metformin', '500 mg', 1, 'tablet', 'white', '{08:00,20:00}' from ids where k='alice_m';
+insert into ids select 'alice_med', id::text from medication_schedules where name = 'Metformin';
+insert into medication_doses (member_id, schedule_id, scheduled_for, status)
+  select (select v::uuid from ids where k='alice_m'), (select v::uuid from ids where k='alice_med'), '2026-10-04 08:00-04', 'taken';
+insert into medication_schedules (member_id, name, dose_qty, dose_unit, form, times, frequency, days_of_week)
+  select v::uuid, 'Vitamin D drops', 5, 'drops', 'drops', '{09:00}', 'days', '{1,4}' from ids where k='dan_m';
+select pg_temp.check((select count(*) from medication_schedules) = 2, 'Alice sees her medicine and her son''s (she can edit his)');
+do $$ begin
+  begin
+    insert into medication_doses (member_id, schedule_id, scheduled_for, status)
+      select (select v::uuid from ids where k='alice_m'), (select v::uuid from ids where k='alice_med'), '2026-10-04 08:00-04', 'missed';
+    raise exception 'duplicate';
+  exception when unique_violation then null; when others then if sqlerrm = 'duplicate' then raise exception 'FAILED: two answers for one reminder'; end if; end;
+  raise notice 'ok  one Taken/Missed answer per reminder time';
+end $$;
+do $$ begin
+  begin
+    insert into medication_doses (member_id, schedule_id, status)
+      select (select v::uuid from ids where k='dan_m'), (select v::uuid from ids where k='alice_med'), 'taken';
+    raise exception 'mismatch';
+  exception when others then if sqlerrm = 'mismatch' then raise exception 'FAILED: dose filed under wrong person'; end if; end;
+  raise notice 'ok  a dose can''t be filed under the wrong person';
+end $$;
+select pg_temp.as_user('dddddddd-0000-0000-0000-000000000004');
+select pg_temp.check((select count(*) from medication_schedules) = 1, 'Dan sees only his own medicine');
+insert into medication_doses (member_id, schedule_id, status)
+  select (select v::uuid from ids where k='dan_m'), id, 'taken' from medication_schedules;
+select pg_temp.check((select count(*) from medication_doses) = 1, 'Dan logs his own dose');
+select pg_temp.as_user('cccccccc-0000-0000-0000-000000000003');
+select pg_temp.check((select count(*) from medication_schedules) = 0 and (select count(*) from medication_doses) = 0, 'outsider sees no medicines or doses');
 \echo ALL CHECKS PASSED

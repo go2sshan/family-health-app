@@ -1,12 +1,15 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, Pressable, View } from 'react-native';
 
-import { Button, Choice, ErrorText, Field, Row, Screen } from '@/components/ui';
+import { Button, Choice, ErrorText, Field, Label, Row, Screen } from '@/components/ui';
 import { useMember } from '@/hooks/use-member';
 import { updateMember } from '@/lib/api';
 import { isIsoDate } from '@/lib/format';
+import { PERSON_COLORS, panelColors } from '@/lib/meds';
 import { BLOOD_GROUPS, RELATIONSHIPS, type BloodGroup, type Member } from '@/lib/types';
+import { useColorScheme } from '@/hooks/use-color-scheme';
+import { usePalette } from '@/hooks/use-palette';
 
 export default function EditMember() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -16,7 +19,9 @@ export default function EditMember() {
 }
 
 function EditForm({ id, m }: { id: string; m: Member }) {
-  const [f, setF] = useState({ first: m.first_name, middle: m.middle_name ?? '', last: m.last_name ?? '', rel: m.relationship ?? 'Other', dob: m.date_of_birth ?? '', sex: m.sex ?? '', blood: (m.blood_group ?? '') as BloodGroup | '', lang: m.language ?? '', pcp: m.primary_doctor ?? '', comm: m.communicate ?? '', needs: m.care_needs ?? '' });
+  const [f, setF] = useState({ first: m.first_name, middle: m.middle_name ?? '', last: m.last_name ?? '', rel: m.relationship ?? 'Other', dob: m.date_of_birth ?? '', sex: m.sex ?? '', blood: (m.blood_group ?? '') as BloodGroup | '', lang: m.language ?? '', pcp: m.primary_doctor ?? '', comm: m.communicate ?? '', needs: m.care_needs ?? '', color: m.color ?? 'teal' });
+  const dark = useColorScheme() === 'dark';
+  const c = usePalette();
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
 
@@ -31,7 +36,7 @@ function EditForm({ id, m }: { id: string; m: Member }) {
         first_name: f.first.trim(), middle_name: f.middle.trim() || null, last_name: f.last.trim() || null,
         relationship: f.rel, date_of_birth: f.dob || null, sex: f.sex || null, blood_group: f.blood || null,
         language: f.lang.trim() || null, primary_doctor: f.pcp.trim() || null,
-        communicate: f.comm.trim() || null, care_needs: f.needs.trim() || null,
+        communicate: f.comm.trim() || null, care_needs: f.needs.trim() || null, color: f.color,
       });
       router.back();
     } catch (e) { setErr(e instanceof Error ? e.message : 'Could not save.'); setBusy(false); }
@@ -48,6 +53,21 @@ function EditForm({ id, m }: { id: string; m: Member }) {
       <Field label="Date of birth (YYYY-MM-DD)" value={f.dob} onChangeText={set('dob')} keyboardType="numbers-and-punctuation" />
       <Choice label="Sex" options={[{ value: 'female', label: 'Female' }, { value: 'male', label: 'Male' }, { value: 'other', label: 'Other' }]} value={f.sex || null} onChange={set('sex')} />
       <Choice label="Blood group" options={BLOOD_GROUPS} value={f.blood || null} onChange={set('blood')} />
+      <View style={{ gap: 6 }}>
+        <Label>Color for medicine reminders</Label>
+        <Row>
+          {PERSON_COLORS.map((col) => {
+            const [bg, accent] = panelColors(col, dark);
+            const on = f.color === col;
+            return (
+              <Pressable key={col} accessibilityRole="radio" accessibilityLabel={col} accessibilityState={{ selected: on }} onPress={() => set('color')(col)}
+                style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: bg, borderWidth: on ? 4 : 2, borderColor: on ? c.text : accent, alignItems: 'center', justifyContent: 'center' }}>
+                <View style={{ width: 16, height: 16, borderRadius: 8, backgroundColor: accent }} />
+              </Pressable>
+            );
+          })}
+        </Row>
+      </View>
       <Field label="Preferred language" value={f.lang} onChangeText={set('lang')} placeholder="e.g. English, Tamil" />
       <Field label="Primary doctor" value={f.pcp} onChangeText={set('pcp')} />
       <Field label="How to communicate with me" value={f.comm} onChangeText={set('comm')} multiline placeholder="e.g. I can't speak but understand slow speech. Uses sign language." />

@@ -49,3 +49,6 @@ supabase/.temp/
 # generated native folders
 /ios
 /android
+
+# test output
+tests/build/

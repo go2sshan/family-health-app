@@ -15,6 +15,10 @@ Function, so the AI key never ships inside the app.
   Profiles for children or elders without a phone are managed by whoever created them and the family admins;
   invite that person later and the profile (with its history) becomes theirs
 - **Chat**: a family group chat plus one-to-one chats, photos, sharing a health record into a chat, read receipts, unread badges
+- **Medicine reminders**: a Medicines tab with today's doses for everyone, each person in their own color panel;
+  medicine name, strength, how much, pill color, time and instructions; one tap for **Taken** or **Missed**
+  (also right from the iPhone reminder); daily, chosen days, or when needed; short courses with an end date;
+  7- and 30-day adherence per medicine
 - **Voice and video calls** (LiveKit), one-to-one or the whole family, with incoming call screen and push notifications
 - Family home with a card per profile you can see (photo, age, blood group, allergies, conditions, medicines, last visit)
 - Each person's page
@@ -32,8 +36,9 @@ Coming next: lab trend charts, Apple Health clinical records, doctor finder and 
 
 1. Create a project at [supabase.com](https://supabase.com).
 2. Open **SQL Editor** and run each file in `supabase/migrations/`, oldest first:
-   `20261004000000_init.sql`, `20261004010000_apple_health.sql`, then `20261004020000_family_chat_calls.sql`.
-3. Optional check: `supabase/tests/privacy_test.sql` runs 31 privacy checks (who can see what) against a test database.
+   `20261004000000_init.sql`, `20261004010000_apple_health.sql`, `20261004020000_family_chat_calls.sql`,
+   then `20261004030000_medicine_reminders.sql`.
+3. Optional check: `supabase/tests/privacy_test.sql` runs 37 privacy checks (who can see what) against a test database.
    (Or with the Supabase CLI: `npx supabase link --project-ref <ref>` then `npx supabase db push`.)
 3. Under **Authentication > Providers**, keep **Email** on. For family-only use you can turn off
    "Allow new users to sign up" after everyone has an account.
@@ -127,6 +132,7 @@ supabase/tests/           privacy tests for the sharing rules
 ```sh
 npm run typecheck
 npx eslint src
+npm test          # medicine schedule logic
 ```
 
 This app is for keeping personal records. It doesn't give medical advice.
