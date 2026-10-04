@@ -53,6 +53,14 @@
           "photosPermission": "Family Health lets you add photos of prescriptions, bills and reports from your library.",
           "microphonePermission": false
         }
+      ],
+      [
+        "@kingstinct/react-native-healthkit",
+        {
+          "NSHealthShareUsageDescription": "Family Health reads steps, heart rate, sleep, blood oxygen, weight, blood pressure and workouts from Apple Health so they appear in your family health record.",
+          "NSHealthUpdateUsageDescription": false,
+          "background": false
+        }
       ]
     ],
     "experiments": {

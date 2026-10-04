@@ -14,17 +14,19 @@ Function, so the AI key never ships inside the app.
 - Each person's page
   - **Records**: timeline by year; scan a prescription, bill or report with the camera; add records by hand; allergy warnings against current medicines
   - **About me**: emergency card, profile photo, personal details, allergies, height and weight by year (US or metric, with BMI), eye prescription by year, emergency contacts
+  - **Health**: Apple Health and Apple Watch data (steps, resting heart rate, sleep, blood oxygen, HRV, weight, blood pressure, glucose, workouts) with 30-day trends
   - **Payments**: what you and insurance paid, grouped by illness, doctor, type or year, in any currency
 - Row-level security: every row and file belongs to the signed-in account and nobody else can read it
 
-Coming next: Apple Health import, lab trend charts, doctor finder and benefits tracker, doctor messaging.
+Coming next: lab trend charts, Apple Health clinical records, doctor finder and benefits tracker, doctor messaging.
 
 ## One-time setup
 
 ### 1. Supabase (backend)
 
 1. Create a project at [supabase.com](https://supabase.com).
-2. Open **SQL Editor**, paste the contents of `supabase/migrations/20261004000000_init.sql`, and run it.
+2. Open **SQL Editor** and run each file in `supabase/migrations/`, oldest first:
+   `20261004000000_init.sql`, then `20261004010000_apple_health.sql`.
    (Or with the Supabase CLI: `npx supabase link --project-ref <ref>` then `npx supabase db push`.)
 3. Under **Authentication > Providers**, keep **Email** on. For family-only use you can turn off
    "Allow new users to sign up" after everyone has an account.
@@ -48,7 +50,19 @@ npx expo start
 ```
 
 Install **Expo Go** on your iPhone and scan the QR code. Expo Go is fine for trying screens;
-Face ID inside Expo Go falls back to your passcode. Use a development or TestFlight build for the real thing.
+Face ID inside Expo Go falls back to your passcode, and **Apple Health doesn't work in Expo Go**.
+Use a development build (`npx eas-cli@latest build --profile development --platform ios`) or TestFlight for that.
+
+### Apple Health and Apple Watch
+
+Each person connects from **their own iPhone**: open their page › **Health** › **Connect Apple Health**
+and choose what to share. The app reads the last 180 days the first time, then catches up whenever the
+page is opened (at most every 10 minutes). It reads only; it never writes to Apple Health. Blood group,
+sex and date of birth are filled in from Apple Health if the profile doesn't have them yet.
+
+App Review note: HealthKit apps need a privacy policy URL in App Store Connect, must say in the app
+what health data is used for, and must never use it for advertising. TestFlight internal testing
+doesn't need App Review.
 
 ### 4. Your iPhone (TestFlight), no Mac needed
 
