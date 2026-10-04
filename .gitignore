@@ -41,3 +41,11 @@ example
 # generated native folders
 /ios
 /android
+
+# secrets
+.env
+supabase/.temp/
+
+# generated native folders
+/ios
+/android

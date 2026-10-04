@@ -1,98 +1,72 @@
-import * as Device from 'expo-device';
-import { Platform, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { router, Stack, useFocusEffect } from 'expo-router';
+import { useCallback, useState } from 'react';
+import { Pressable, RefreshControl, ScrollView, View } from 'react-native';
 
-import { AnimatedIcon } from '@/components/animated-icon';
-import { HintRow } from '@/components/hint-row';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { WebBadge } from '@/components/web-badge';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
+import { Avatar, Badge, Button, ErrorText, H, Muted, Row, T } from '@/components/ui';
+import { Space } from '@/constants/theme';
+import { usePalette } from '@/hooks/use-palette';
+import { listMembers, type MemberSummary } from '@/lib/api';
+import { ageOf, fmtDate, fullName, initials } from '@/lib/format';
+import { supabase } from '@/lib/supabase';
 
-function getDevMenuHint() {
-  if (Platform.OS === 'web') {
-    return <ThemedText type="small">use browser devtools</ThemedText>;
-  }
-  if (Device.isDevice) {
-    return (
-      <ThemedText type="small">
-        shake device or press <ThemedText type="code">m</ThemedText> in terminal
-      </ThemedText>
-    );
-  }
-  const shortcut = Platform.OS === 'android' ? 'cmd+m (or ctrl+m)' : 'cmd+d';
+export default function Family() {
+  const c = usePalette();
+  const [members, setMembers] = useState<MemberSummary[] | null>(null);
+  const [err, setErr] = useState('');
+  const [refreshing, setRefreshing] = useState(false);
+
+  const load = useCallback(async () => {
+    try { setMembers(await listMembers()); setErr(''); }
+    catch (e) { setErr(e instanceof Error ? e.message : 'Could not load your family.'); }
+  }, []);
+  useFocusEffect(useCallback(() => { load(); }, [load]));
+
   return (
-    <ThemedText type="small">
-      press <ThemedText type="code">{shortcut}</ThemedText>
-    </ThemedText>
+    <>
+      <Stack.Screen options={{ headerRight: () => <Button small title="Sign out" onPress={() => supabase.auth.signOut()} /> }} />
+      <ScrollView
+        style={{ backgroundColor: c.bg }}
+        contentInsetAdjustmentBehavior="automatic"
+        contentContainerStyle={{ padding: Space.lg, gap: Space.md, paddingBottom: 48 }}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={async () => { setRefreshing(true); await load(); setRefreshing(false); }} />}>
+        <ErrorText>{err}</ErrorText>
+        {members && members.length === 0 ? (
+          <View style={{ gap: Space.sm, paddingVertical: Space.lg }}>
+            <H>Start with yourself</H>
+            <Muted>Add each family member, then scan their prescriptions, bills and reports. Everything stays private to your account.</Muted>
+          </View>
+        ) : null}
+        {members?.map((m) => {
+          const age = ageOf(m.date_of_birth);
+          const conditions = m.records.filter((r) => r.kind === 'diagnosis' && r.ongoing).length;
+          const meds = m.records.filter((r) => r.kind === 'medicine' && r.ongoing).length;
+          const lastVisit = m.records.filter((r) => r.kind === 'visit' && r.occurred_on).map((r) => r.occurred_on!).sort().at(-1);
+          return (
+            <Pressable
+              key={m.id}
+              accessibilityRole="button"
+              accessibilityLabel={`Open ${fullName(m)}`}
+              onPress={() => router.push({ pathname: '/member/[id]', params: { id: m.id } })}
+              style={({ pressed }) => ({ backgroundColor: c.surface, borderColor: c.line, borderWidth: 1, borderRadius: 14, padding: Space.lg, gap: Space.sm, opacity: pressed ? 0.8 : 1 })}>
+              <View style={{ flexDirection: 'row', gap: Space.md, alignItems: 'center' }}>
+                <Avatar path={m.photo_path} initials={initials(m)} />
+                <View style={{ flex: 1 }}>
+                  <T style={{ fontSize: 18, fontWeight: '700' }}>{fullName(m)}</T>
+                  <Muted>{[m.relationship || 'Family member', age != null ? `age ${age}` : null].filter(Boolean).join(' · ')}</Muted>
+                </View>
+              </View>
+              <Row>
+                {m.blood_group ? <Badge text={`Blood ${m.blood_group}`} /> : null}
+                {m.allergies.length ? <Badge tone="bad" text={`${m.allergies.length} allerg${m.allergies.length > 1 ? 'ies' : 'y'}`} /> : null}
+                <Badge text={`${conditions} condition${conditions === 1 ? '' : 's'}`} />
+                <Badge text={`${meds} medicine${meds === 1 ? '' : 's'}`} />
+              </Row>
+              <Muted>{lastVisit ? `Last visit ${fmtDate(lastVisit)}` : 'No visits recorded yet'} · {m.records.length} records</Muted>
+            </Pressable>
+          );
+        })}
+        <Button kind="primary" title="Add family member" onPress={() => router.push('/add-member')} />
+      </ScrollView>
+    </>
   );
 }
-
-export default function HomeScreen() {
-  return (
-    <ThemedView style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
-        <ThemedView style={styles.heroSection}>
-          <AnimatedIcon />
-          <ThemedText type="title" style={styles.title}>
-            Welcome to&nbsp;Expo
-          </ThemedText>
-        </ThemedView>
-
-        <ThemedText type="code" style={styles.code}>
-          get started
-        </ThemedText>
-
-        <ThemedView type="backgroundElement" style={styles.stepContainer}>
-          <HintRow
-            title="Try editing"
-            hint={<ThemedText type="code">src/app/index.tsx</ThemedText>}
-          />
-          <HintRow title="Dev tools" hint={getDevMenuHint()} />
-          <HintRow
-            title="Fresh start"
-            hint={<ThemedText type="code">npm run reset-project</ThemedText>}
-          />
-        </ThemedView>
-
-        {Platform.OS === 'web' && <WebBadge />}
-      </SafeAreaView>
-    </ThemedView>
-  );
-}
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    flexDirection: 'row',
-  },
-  safeArea: {
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    alignItems: 'center',
-    gap: Spacing.three,
-    paddingBottom: BottomTabInset + Spacing.three,
-    maxWidth: MaxContentWidth,
-  },
-  heroSection: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    gap: Spacing.four,
-  },
-  title: {
-    textAlign: 'center',
-  },
-  code: {
-    textTransform: 'uppercase',
-  },
-  stepContainer: {
-    gap: Spacing.three,
-    alignSelf: 'stretch',
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.four,
-    borderRadius: Spacing.four,
-  },
-});

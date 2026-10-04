@@ -1,0 +1,4 @@
+project_id = "family-health-app"
+
+[functions.scan-document]
+verify_jwt = true

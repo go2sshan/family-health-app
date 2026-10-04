@@ -1,14 +1,19 @@
 {
   "expo": {
-    "name": "family-health-app",
-    "slug": "family-health-app",
+    "name": "Family Health",
+    "slug": "family-health",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "familyhealthapp",
+    "scheme": "familyhealth",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/expo.icon"
+      "icon": "./assets/expo.icon",
+      "bundleIdentifier": "com.go2sshan.familyhealth",
+      "supportsTablet": false,
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -17,7 +22,8 @@
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.go2sshan.familyhealth"
     },
     "web": {
       "output": "static",
@@ -28,9 +34,24 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#208AEF",
+          "backgroundColor": "#0f6e7a",
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 76
+        }
+      ],
+      "expo-sqlite",
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "Family Health uses Face ID to keep your family\u2019s medical records private."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": "Family Health uses the camera to photograph prescriptions, bills, reports and profile photos.",
+          "photosPermission": "Family Health lets you add photos of prescriptions, bills and reports from your library.",
+          "microphonePermission": false
         }
       ]
     ],

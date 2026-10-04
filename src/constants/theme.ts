@@ -1,65 +1,40 @@
-/**
- * Below are the colors that are used in the app. The colors are defined in the light and dark mode.
- * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
- */
-
-import '@/global.css';
-
 import { Platform } from 'react-native';
 
 export const Colors = {
   light: {
-    text: '#000000',
-    background: '#ffffff',
-    backgroundElement: '#F0F0F3',
-    backgroundSelected: '#E0E1E6',
-    textSecondary: '#60646C',
+    bg: '#f6f8f8',
+    surface: '#ffffff',
+    text: '#15262b',
+    muted: '#5a6d72',
+    line: '#dbe3e4',
+    accent: '#0f6e7a',
+    accentSoft: '#e1f0f1',
+    onAccent: '#ffffff',
+    good: '#2e7d4f',
+    warn: '#a15c00',
+    warnSoft: '#fbefdc',
+    bad: '#b3261e',
+    badSoft: '#fbe4e2',
   },
   dark: {
-    text: '#ffffff',
-    background: '#000000',
-    backgroundElement: '#212225',
-    backgroundSelected: '#2E3135',
-    textSecondary: '#B0B4BA',
+    bg: '#0f1719',
+    surface: '#162226',
+    text: '#e3ecee',
+    muted: '#93a7ac',
+    line: '#26363a',
+    accent: '#5cc2cc',
+    accentSoft: '#16363b',
+    onAccent: '#0f1719',
+    good: '#6fcf97',
+    warn: '#f0b35c',
+    warnSoft: '#3a2c14',
+    bad: '#f2847b',
+    badSoft: '#3d1d1b',
   },
 } as const;
 
-export type ThemeColor = keyof typeof Colors.light & keyof typeof Colors.dark;
+export type Palette = { [K in keyof typeof Colors.light]: string };
 
-export const Fonts = Platform.select({
-  ios: {
-    /** iOS `UIFontDescriptorSystemDesignDefault` */
-    sans: 'system-ui',
-    /** iOS `UIFontDescriptorSystemDesignSerif` */
-    serif: 'ui-serif',
-    /** iOS `UIFontDescriptorSystemDesignRounded` */
-    rounded: 'ui-rounded',
-    /** iOS `UIFontDescriptorSystemDesignMonospaced` */
-    mono: 'ui-monospace',
-  },
-  default: {
-    sans: 'normal',
-    serif: 'serif',
-    rounded: 'normal',
-    mono: 'monospace',
-  },
-  web: {
-    sans: 'var(--font-display)',
-    serif: 'var(--font-serif)',
-    rounded: 'var(--font-rounded)',
-    mono: 'var(--font-mono)',
-  },
-});
+export const Mono = Platform.select({ ios: 'Menlo', default: 'monospace' });
 
-export const Spacing = {
-  half: 2,
-  one: 4,
-  two: 8,
-  three: 16,
-  four: 24,
-  five: 32,
-  six: 64,
-} as const;
-
-export const BottomTabInset = Platform.select({ ios: 50, android: 80 }) ?? 0;
-export const MaxContentWidth = 800;
+export const Space = { xs: 4, sm: 8, md: 12, lg: 16, xl: 24 } as const;
